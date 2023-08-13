@@ -1,0 +1,2 @@
+# Raft
+Raft Consensus Algorithm.
