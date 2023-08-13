@@ -1,2 +1,2 @@
 # Raft
-Raft Consensus Algorithm.
+Raft Consensus Algorithm(Incomplete).
