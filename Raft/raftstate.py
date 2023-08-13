@@ -267,7 +267,7 @@ class RaftState:
    # Command center for RaftState. Handles received messages from clients and other servers
     def handle_new_state(self, addr, msg):
 
-        print(msg, self.leader_num)
+        print(msg, self.leader_num, self.role)
         # IF message is SRVC object, generate SRVR object and send to candidate server
         if isinstance(msg, SendRequestVoteCommand):
             candidate_id = msg.candidate_id
