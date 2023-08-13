@@ -267,6 +267,7 @@ class RaftState:
    # Command center for RaftState. Handles received messages from clients and other servers
     def handle_new_state(self, addr, msg):
 
+        print(msg, self.leader_num)
         # IF message is SRVC object, generate SRVR object and send to candidate server
         if isinstance(msg, SendRequestVoteCommand):
             candidate_id = msg.candidate_id
@@ -284,6 +285,7 @@ class RaftState:
         elif isinstance(msg, LeaderSend):
             self.role = 'Follower'
             self.leader_num = msg.leader_num
+            print("leader num", self.leader_num)
             self.reset_heartbeat_timer()
 
         # AEC, AER, COMMAND objects
@@ -413,6 +415,7 @@ class RaftState:
     def become_leader(self):
         self.role = 'Leader'
         print("IM LEADER ON TERM", self.current_term)
+        self.leader_num = self.nodenum
 
         # Send LS object to all other servers
         force_follow = LeaderSend(self.leader_num)

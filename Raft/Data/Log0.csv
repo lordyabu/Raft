@@ -1,11 +1,3 @@
 ,command
-0,"LogEntry(term=4, command='a')"
-1,"LogEntry(term=4, command='d')"
-2,"LogEntry(term=4, command='w')"
-3,"LogEntry(term=4, command='r')"
-4,"LogEntry(term=4, command='a')"
-5,"LogEntry(term=4, command='sadsad')"
-6,"LogEntry(term=4, command='a')"
-7,"LogEntry(term=4, command='a')"
-8,"LogEntry(term=4, command='c')"
-9,"LogEntry(term=6, command='sad')"
+0,"LogEntry(term=9, command='l')"
+1,"LogEntry(term=15, command='ascsac')"
