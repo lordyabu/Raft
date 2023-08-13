@@ -1,0 +1,10 @@
+,command
+0,"LogEntry(term=11, command='hi')"
+1,"LogEntry(term=12, command='the')"
+2,"LogEntry(term=16, command='gu')"
+3,"LogEntry(term=16, command='jjj')"
+4,"LogEntry(term=16, command='m')"
+5,"LogEntry(term=16, command='fev')"
+6,"LogEntry(term=16, command='ec')"
+7,"LogEntry(term=16, command='t')"
+8,"LogEntry(term=16, command='u8hgrb')"

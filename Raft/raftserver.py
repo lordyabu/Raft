@@ -26,7 +26,7 @@ def console(nodenum, is_leader):
                 try:
                     unpickled_msg = pickle.loads(msg)
                     if unpickled_msg is not None:
-                        print("Received message:", unpickled_msg, net.raft_state.role)
+                        # print("Received message:", unpickled_msg, net.raft_state.role)
                         message_queue.put((addr, msg))
                 except pickle.UnpicklingError as e:
                     if net.print_stuffs:

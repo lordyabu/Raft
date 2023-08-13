@@ -9,7 +9,7 @@ def recv_exactly(sock, nbytes):
     chunks = []
     while nbytes > 0:
         chunk = sock.recv(nbytes)
-        print(chunk)
+        # print(chunk)
         if chunk == b'':
             raise IOError("Incomplete message")
         chunks.append(chunk)
