@@ -55,7 +55,7 @@ class RaftNet:
     # Runs the send for server. waits until message is in queue, and send to appropriate socket
 
     # -----------------------------------------------------------------------------------
-    # Puts message into sendqueue. Note: does not send the message, this is sent in sender
+    # Puts message into sendqueue. Note: does not send the message, this is sent in send_response_runner
     def send(self, destination: int, message: bytes):
         # Put the message in the destination's send queue
         if self.print_stuffs:

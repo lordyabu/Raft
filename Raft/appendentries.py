@@ -1,4 +1,4 @@
-from raftobjects import  LogEntry, AppendEntriesResponse
+from raftobjects import  LogEntry, AppendEntriesResponse, AppendEntriesCommand
 import numpy as np
 
 
@@ -20,7 +20,21 @@ def append_entries(log, prev_index, prev_term, entries, follower_num, reset):
         if isinstance(entries, LogEntry):
             entries = [entries]
 
-    print(entries)
+    #  ToDo: Need logic for nested LogEntry. Ideally don't want this hack
+    # for entry in entries, if Entry is AEC, convert to normal LE
+
+    entries_fixed = []
+    count = 0
+    for entry in entries:
+        # print("ITERATING THROUGH ENTRY", count)
+        if isinstance(entry, AppendEntriesCommand):
+            # print("CAUGHT")
+            new_entry = LogEntry(AppendEntriesCommand.entries.term, AppendEntriesCommand.entries.command)
+        else:
+            new_entry = entry
+        entries_fixed.append(new_entry)
+    entries = entries_fixed
+
     # If new server/log, update log and return success AER object
     if prev_index == -1:
         log = np.append(log, entries)
