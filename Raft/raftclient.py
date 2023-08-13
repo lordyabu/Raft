@@ -46,6 +46,9 @@ def main(addr):
                 max_attempts = 5  # Maximum number of connection attempts
                 index += 1
                 for _ in range(max_attempts):
+
+                    # THIS PRINT IS CURRENTLY NEEDED DON'T DELETE
+                    print(index)
                     # Try to connecting to new socket and sending msg
                     try:
                         sock = send_to_new_index(index)

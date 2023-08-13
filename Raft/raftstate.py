@@ -314,7 +314,7 @@ class RaftState:
     def random_timeout(self):
         # Return a random timeout value between a certain range
         # ToDo: make timeout shorter
-        return random.uniform(2, 5)
+        return random.uniform(5, 10)
 
     # Reset time since lastheartbeat
     def reset_heartbeat_timer(self):
@@ -371,7 +371,7 @@ class RaftState:
 
         # Hack here ToDo: figure out why current_term becoming LogEntry, but contains correct current term
         if isinstance(self.current_term, LogEntry):
-            self.current_term = LogEntry.term
+            self.current_term = self.current_term.term
 
 
         if request_vote_command.term < self.current_term:

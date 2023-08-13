@@ -14,6 +14,8 @@ def append_entries(log, prev_index, prev_term, entries, follower_num, reset):
     if not isinstance(entries, list):
         entries = [entries]
 
+    print(entries)
+
 
     # If new server/log, update log and return success AER object
     if prev_index == -1:
@@ -40,8 +42,8 @@ def append_entries(log, prev_index, prev_term, entries, follower_num, reset):
     # and return True
     if len(log) >= prev_index + 1:
         if log[prev_index].term < entries[0].term:
-            del log[prev_index:]
-            log.extend(entries)
+            log = np.delete(log, np.s_[prev_index:], axis=0)
+            log = np.append(log, entries)
             return (True, prev_term, entries[-1].term, follower_num, len(log)), log
 
 

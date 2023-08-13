@@ -10,6 +10,9 @@ class LogEntry:
         return f"LogEntry(term={self.term}, command='{self.command}')"
 
 
+    def to_string(self):
+        return f"{self.term} {self.command}"
+
 
 # AEC.
 
