@@ -1,6 +1,6 @@
 # These are the variables that are sent between sockets. This implementation uses pickle                               v
 class LogEntry:
-    def __init__(self, term, command)
+    def __init__(self, term, command):
         # Current leader term
         self.term = term
         # Message to be stored in log
@@ -9,6 +9,9 @@ class LogEntry:
     def __str__(self):
         return f"LogEntry(term={self.term}, command='{self.command}')"
 
+
+    def to_string(self):
+        return f"{self.term} {self.command}"
 
 
 # AEC.

@@ -48,23 +48,31 @@ class RaftNet:
         # Setup queues for sending and receiving messages
         self.send_queues = {node: Queue() for node in raftconfig.SERVERS}
         for d in raftconfig.SERVERS:
-            threading.Thread(target=self.sender, args=[d]).start()
+            threading.Thread(target=self.send_responses_runner, args=[d]).start()
         self.other_offlines = []
         # ----------------------
 
     # Runs the send for server. waits until message is in queue, and send to appropriate socket
 
     # -----------------------------------------------------------------------------------
-    # Puts message into sendqueue. Note: does not send the message, this is sent in sender
+    # Puts message into sendqueue. Note: does not send the message, this is sent in send_response_runner
     def send(self, destination: int, message: bytes):
         # Put the message in the destination's send queue
         if self.print_stuffs:
             print("SENDING TO", destination)
         self.send_queues[destination].put(message)
-    def send_responses_runner(self):
+    def send_responses_runner(self, destination):
         while True:
-            sock, msg = self.send_queuesp.get()
-            send_message(sock, msg)
+            try:
+                message = self.send_queues[destination].get()
+                if self.print_stuffs:
+                    print(pickle.loads(message))
+                client_socket = self.get_client_socket(destination)
+                send_message(client_socket, message)
+            except:
+                self.other_offlines.append(destination)
+                if self.print_stuffs:
+                    print(f"Follower {destination} is not online")
 
     # --------------------------------------------------------------------------------------
 

@@ -1,10 +1,9 @@
-from raftobjects import  LogEntry, AppendEntriesResponse
+from raftobjects import  LogEntry, AppendEntriesResponse, AppendEntriesCommand
 import numpy as np
 
 
 # Logic implemented below of AppendEntries RPC function, but uses 0 based indexing. Note not exact logic but includes main
-# ToDo not have AppendEntriesResponse() everywhere
-def append_entries(log, prev_term, entries, follower_num, reset):
+def append_entries(log, prev_index, prev_term, entries, follower_num, reset):
 
     # IF term higher than current term, make follower, if it is less, you can either reply no and send current term, or just return a mistake
     # For broken log
@@ -15,45 +14,62 @@ def append_entries(log, prev_term, entries, follower_num, reset):
     if not isinstance(entries, list):
         entries = [entries]
 
+    # Hack ToDo: fix logic here
+    if isinstance(entries, list):
+        entries = entries[0]
+        if isinstance(entries, LogEntry):
+            entries = [entries]
+
+    #  ToDo: Need logic for nested LogEntry. Ideally don't want this hack
+    # for entry in entries, if Entry is AEC, convert to normal LE
+
+    entries_fixed = []
+    count = 0
+    for entry in entries:
+        # print("ITERATING THROUGH ENTRY", count)
+        if isinstance(entry, AppendEntriesCommand):
+            # print("CAUGHT")
+            new_entry = LogEntry(AppendEntriesCommand.entries.term, AppendEntriesCommand.entries.command)
+        else:
+            new_entry = entry
+        entries_fixed.append(new_entry)
+    entries = entries_fixed
 
     # If new server/log, update log and return success AER object
     if prev_index == -1:
         log = np.append(log, entries)
-        return AppendEntriesResponse(success=True, prev_term=prev_term, term=entries[-1].term,follower_index=follower_num,
-                                     next_index=len(log)), log
+        return (True, prev_term, entries[-1].term, follower_num, len(log)), log
 
     # If prev_index is higher than current length of log, return false AER object. ToDo: note use len(log) and send variable instead
     if prev_index >= len(log):
         if len(log) > 0:
-            return AppendEntriesResponse(success=False, prev_term=None, term=log[-1].term, follower_index=follower_num, next_index=len(log)), log
+            return (False, None, log[-1].term, follower_num, len(log)), log
         else:
-            return AppendEntriesResponse(success=False, prev_term=None, term=-1, follower_index=follower_num, next_index=len(log)), log
+            return (False, None, -1, follower_num, len(log)), log
 
 
     # If should be second entry in log and previous terms don't match up, return false AER object
     if prev_index == 0:
         if len(log) > 0 and log[0].term != prev_term:
-            return AppendEntriesResponse(success=False,  prev_term=None, term=log[-1].term, follower_index=follower_num, next_index=len(log)), log
+            return (False, None, log[-1].term, follower_num, len(log)), log
     # If previous terms don't match up. Note this is different in Raft paper but is needed because of 0 based indexing
     elif log[prev_index].term != prev_term:
-        return AppendEntriesResponse(success=False, prev_term=None, term=log[-1].term, follower_index=follower_num, next_index=len(log)), log
+        return(False, None, log[-1].term, follower_num, len(log)), log
 
     # If log is bigger than the previous index, but the entry is saying it's term is higher than log term, the current log should truncate, add new response
     # and return True
     if len(log) >= prev_index + 1:
         if log[prev_index].term < entries[0].term:
-            del log[prev_index:]
-            log.extend(entries)
-            return AppendEntriesResponse(success=True, prev_term=prev_term, term=entries[-1].term, follower_index=follower_num, next_index=len(log)), log
-
+            log = np.delete(log, np.s_[prev_index:], axis=0)
+            log = np.append(log, entries)
+            return (True, prev_term, entries[-1].term, follower_num, len(log)), log
 
 
     # Otherwise success, add entries and return true
     log = np.append(log, entries)
-    return AppendEntriesResponse(success=True, prev_term=prev_term, term=entries[-1].term, follower_index=follower_num, next_index=len(log)), log
+    return (True, prev_term, entries[-1].term, follower_num, len(log)), log
 
-
-
+6
 # Test usage
 if __name__ == '__main__':
     log = [LogEntry(1, "A"), LogEntry(1, "B"), LogEntry(2, "C"), LogEntry(2, "X"), LogEntry(2, "Y")]

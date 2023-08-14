@@ -7,6 +7,7 @@ import math
 from raftnet import RaftNet
 import random
 from appendentries import append_entries
+import raftconfig
 
 
 
@@ -142,6 +143,8 @@ class RaftState:
         append_entries_response, self.log = append_entries(self.log, prev_index, prev_term, entries, self.nodenum,
                                                            reset_server)
 
+        append_entries_response = AppendEntriesResponse(append_entries_response[0], append_entries_response[1], append_entries_response[2], append_entries_response[3], append_entries_response[4])
+
 
 
         # Handles main two cases for append entries response
@@ -264,6 +267,7 @@ class RaftState:
    # Command center for RaftState. Handles received messages from clients and other servers
     def handle_new_state(self, addr, msg):
 
+        print(msg, self.leader_num, self.role)
         # IF message is SRVC object, generate SRVR object and send to candidate server
         if isinstance(msg, SendRequestVoteCommand):
             candidate_id = msg.candidate_id
@@ -281,6 +285,7 @@ class RaftState:
         elif isinstance(msg, LeaderSend):
             self.role = 'Follower'
             self.leader_num = msg.leader_num
+            print("leader num", self.leader_num)
             self.reset_heartbeat_timer()
 
         # AEC, AER, COMMAND objects
@@ -310,7 +315,8 @@ class RaftState:
     # Timeout used for leader election
     def random_timeout(self):
         # Return a random timeout value between a certain range
-        return random.uniform(.1, .2)
+        # ToDo: make timeout shorter
+        return random.uniform(5, 10)
 
     # Reset time since lastheartbeat
     def reset_heartbeat_timer(self):
@@ -327,6 +333,7 @@ class RaftState:
             # If candidate and timeout call for an election and use a SRVC object
             if self.role == 'Candidate' and time.time() - self.last_heartbeat_time > random_timeout:
                 self.reset_heartbeat_timer()
+                random_timeout = self.random_timeout()
                 if isinstance(self.current_term, LogEntry):
                     self.current_term = self.current_term.term
                 self.current_term += 1
@@ -363,8 +370,14 @@ class RaftState:
 
 
         # Bad SRVC object, so reject vote
+
+        # Hack here ToDo: figure out why current_term becoming LogEntry, but contains correct current term
+        if isinstance(self.current_term, LogEntry):
+            self.current_term = self.current_term.term
+
+
         if request_vote_command.term < self.current_term:
-            return self.current_term,
+            return self.current_term, 0
 
         #
         # if SRVC object term is higher than current term, update prev/current term, become follower
@@ -401,7 +414,8 @@ class RaftState:
     # Become leader
     def become_leader(self):
         self.role = 'Leader'
-        print("IM LEADER")
+        print("IM LEADER ON TERM", self.current_term)
+        self.leader_num = self.nodenum
 
         # Send LS object to all other servers
         force_follow = LeaderSend(self.leader_num)
