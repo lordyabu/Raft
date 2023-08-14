@@ -8,6 +8,7 @@ from raftnet import RaftNet
 import random
 from appendentries import append_entries
 import raftconfig
+import sys
 
 
 
@@ -54,8 +55,6 @@ class RaftState:
         self.leader_num = 0
         # Node number for this follower -> raftconfig.SERVERS
         self.nodenum = nodenum
-        # Above nodes KV value in raftconfig.SERVERS
-        self.server_address = raftconfig.SERVERS[nodenum]
         # ----------------------
 
         # Raft Log Replication
@@ -85,7 +84,7 @@ class RaftState:
                     "next_index": 0,
                     "prev_term": -1,
                     "curr_term": -1,
-                    'is_alive': .5  # Initialize current term for each follower
+                    'is_alive': 0
                     # Add other follower state variables as needed
                 }
         # ----------------------
@@ -152,10 +151,9 @@ class RaftState:
 
             # If server's log entry and AER is success false
             if prev_index == -1:
-                # DEBUGGING
-                if self.print_stuffs:
-                    print(f"SEVER {self.nodenum} IS DEAD")
+                print(f"SEVER {self.nodenum} IS DEAD")
 
+                sys.exit(1)
                 #ToDo: Add actual command here
             else:
                 # Currently using catchup non recursive function ToDo: make recursive
@@ -206,20 +204,19 @@ class RaftState:
                 # Generate AEC object
                 append_entries_command = AppendEntriesCommand(prev_index, prev_term, LogEntry(self.current_term, msg),
                                                               False)
-                try:
-                    # Pickle message and send
-                    aec_pickle = pickle.dumps(append_entries_command)
-                    self.raft_net.send(follower_index, aec_pickle)
-                except:
-                    # For DEBUGGING
-                    if self.print_stuffs:
-                        print(f"Follower {follower_index} is not working")
+                # Pickle message and send
+                aec_pickle = pickle.dumps(append_entries_command)
+                self.raft_net.send(follower_index, aec_pickle)
+
 
 
         # Wait for concensuss
         consensus = False
         while not consensus:
-            consensus = self.has_consensus_happened()
+            print("not consensus")
+            consensus = self.has_consensus_happened_ready()
+
+            # Need to add conditional if consensus should timeout
 
         try:
             self.raft_net.send_client(addr, "ConsensusReached")
@@ -228,7 +225,7 @@ class RaftState:
             # ToDo: handle this edge case properly as described in Raft paper
 
 
-    # Current implementation of concensus. Note correct implementation below, but this is current implementation
+    # Current implementation of consensus. Note correct implementation below, but this is current implementation
     def has_consensus_happened(self):
 
         # Keep track of servers who are against concensus
@@ -242,8 +239,11 @@ class RaftState:
                 if self.follower_states[follower_index]['is_alive'] == 1:
                     if self.follower_states[follower_index]['next_index'] != self.match_index:
                         bad += 1
+                elif self.follower_states[follower_index]['is_alive'] == 0:
+                    bad += 1
                 else:
-                    pass
+                    # If alive = .5 which is initalized to
+                    bad += 1
 
         # For when full 5 servers
         if bad > math.floor(len(raftconfig.SERVERS) / 2):
@@ -256,7 +256,8 @@ class RaftState:
     def has_consensus_happened_ready(self):
             next_indexes = []
             for follower_index in raftconfig.SERVERS:
-                next_indexes.append(self.follower_states[follower_index]['next_index'])
+                if follower_index != self.nodenum:
+                    next_indexes.append(self.follower_states[follower_index]['next_index'])
 
             if np.median(next_indexes) > self.match_index:
                 return False

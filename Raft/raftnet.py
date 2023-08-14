@@ -5,6 +5,7 @@ import raftconfig
 from socket import AF_INET, SOCK_STREAM
 import pickle
 from message import recv_message, send_message
+from raftobjects import AppendEntriesResponse
 
 
 
