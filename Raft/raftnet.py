@@ -5,6 +5,7 @@ import raftconfig
 from socket import AF_INET, SOCK_STREAM
 import pickle
 from message import recv_message, send_message
+from raftobjects import AppendEntriesResponse
 
 
 
@@ -38,6 +39,9 @@ class RaftNet:
         self.socket.listen()
         self.receive_sockets = [self.socket]  # Add the main server socket to the list
 
+        # Num reveiver threads
+        self.num_receiver_threads = 0
+        self.max_reveiver_thread = 3
         # Start the receiver thread
         threading.Thread(target=self.receiver).start()
         # ----------------------
@@ -104,8 +108,10 @@ class RaftNet:
         return self.receive_queue.get()
 
     def receiver(self):
+        self.num_receiver_threads += 1
         client, addr = self.socket.accept()
-        threading.Thread(target=self.receiver).start()
+        if self.num_receiver_threads < self.max_reveiver_thread:
+            threading.Thread(target=self.receiver).start()
         while True:
             data = recv_message(client)
             self.receive_queue.put((client, data))
