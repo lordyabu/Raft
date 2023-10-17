@@ -35,6 +35,7 @@ def main(addr):
             msg = input("Say >")
             if not msg:
                 break
+            print("sending message to leader", sock)
             send_message(sock, pickle.dumps(msg))
             response = recv_message(sock)
             print(pickle.loads(response))

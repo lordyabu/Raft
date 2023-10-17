@@ -311,6 +311,7 @@ class RaftState:
                 self.handle_append_entries_response(aer)
             # Currently this logic leaves out "SwitchToLeader" string object which is sent back to client
             else:
+                print(addr, 'LEADER ADDRESS')
                 self.raft_net.sender_client(addr, "SwitchToLeader")
 
     # Timeout used for leader election
