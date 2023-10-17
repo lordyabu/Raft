@@ -35,13 +35,17 @@ class RaftNet:
         self.server_address = raftconfig.SERVERS[nodenum]
         self.receive_queue = Queue()
         self.socket = socket.socket(AF_INET, SOCK_STREAM)
+
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+
         self.socket.bind(self.server_address)
         self.socket.listen()
         self.receive_sockets = [self.socket]  # Add the main server socket to the list
 
         # Num reveiver threads
         self.num_receiver_threads = 0
-        self.max_reveiver_thread = 3
+        self.max_receiver_thread = 30
         # Start the receiver thread
         threading.Thread(target=self.receiver).start()
         # ----------------------
@@ -110,7 +114,7 @@ class RaftNet:
     def receiver(self):
         self.num_receiver_threads += 1
         client, addr = self.socket.accept()
-        if self.num_receiver_threads < self.max_reveiver_thread:
+        if self.num_receiver_threads < self.max_receiver_thread:
             threading.Thread(target=self.receiver).start()
         while True:
             data = recv_message(client)

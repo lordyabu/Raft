@@ -95,3 +95,8 @@ class LeaderSend:
     def __init__(self, leader_num):
         # Index who which is now the leader. Is a key of raftconfig.SERVERS
         self.leader_num = leader_num
+
+
+class LeaderSendClient:
+    def __init__(self):
+        pass
